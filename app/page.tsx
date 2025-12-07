@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -21,6 +22,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
 
 export default function Home() {
+  const router = useRouter();
   const [stats, setStats] = useState({
     labReports: 0,
     notes: 0,
@@ -30,8 +32,19 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Handle auth hash tokens if present (Supabase OAuth callback)
+    if (typeof window !== "undefined" && window.location.hash) {
+      const hash = window.location.hash;
+      if (hash.includes("access_token")) {
+        // Clean URL by removing hash - Supabase client handles the rest
+        const url = new URL(window.location.href);
+        url.hash = "";
+        window.history.replaceState({}, "", url.toString());
+        router.refresh();
+      }
+    }
     fetchDashboardData();
-  }, []);
+  }, [router]);
 
   const fetchDashboardData = async () => {
     if (!supabase) {
@@ -77,8 +90,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-
-
 
   return (
     <div className="space-y-6">
